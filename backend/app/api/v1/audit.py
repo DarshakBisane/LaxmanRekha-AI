@@ -1,6 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import desc
 from app.db.session import get_db
 from app.db.models import AuditLog, User, Case
@@ -18,7 +18,10 @@ def list_audit_logs(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(["bank_officer", "reviewer", "admin"]))
 ):
-    query = db.query(AuditLog)
+    query = db.query(AuditLog).options(
+        joinedload(AuditLog.user),
+        joinedload(AuditLog.case)
+    )
 
     if case_id:
         query = query.filter(AuditLog.case_id == case_id)

@@ -2,7 +2,7 @@ import random
 import datetime
 from typing import List, Optional, Any
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, Request, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import desc, or_
 from app.db.session import get_db
 from app.db.models import Case, Document, ExtractedField, VerificationResult, TrustScore, User
@@ -22,6 +22,7 @@ from app.services.rag_service import rag_service
 from app.services.gemini_service import gemini_service
 from app.services.scoring_service import scoring_service
 from app.services.audit_service import audit_service
+from app.services.redis_service import redis_service
 from app.core.config import settings
 from app.core.logging import logger
 
@@ -44,7 +45,6 @@ def list_cases(
 ):
     query = db.query(Case)
 
-    # Bank officers see all non-restricted cases or their own; reviewers and admins see all
     if search:
         search_fmt = f"%{search.strip()}%"
         query = query.filter(
@@ -91,6 +91,9 @@ def create_case(
     db.commit()
     db.refresh(new_case)
 
+    # Invalidate dashboard summary cache
+    redis_service.delete("analytics:dashboard_summary")
+
     audit_service.log_event(
         db=db,
         action="CASE_CREATED",
@@ -115,14 +118,20 @@ def get_case(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    case = db.query(Case).filter(Case.id == case_id).first()
+    case = db.query(Case).options(
+        selectinload(Case.documents),
+        selectinload(Case.extracted_fields),
+        selectinload(Case.verification_results),
+        selectinload(Case.trust_scores)
+    ).filter(Case.id == case_id).first()
+
     if not case:
         raise NotFoundError(f"Case with ID {case_id} not found.")
 
-    docs = db.query(Document).filter(Document.case_id == case.id).all()
-    fields = db.query(ExtractedField).filter(ExtractedField.case_id == case.id).all()
-    verif_results = db.query(VerificationResult).filter(VerificationResult.case_id == case.id).all()
-    score = db.query(TrustScore).filter(TrustScore.case_id == case.id).first()
+    docs = case.documents
+    fields = case.extracted_fields
+    verif_results = case.verification_results
+    score = case.trust_scores
 
     # Reconstruct side-by-side diffs and conflicts from stored verification results
     side_by_side = []
@@ -536,5 +545,8 @@ def analyze_case(
         },
         ip_address=get_client_ip(request)
     )
+
+    # Invalidate dashboard summary cache
+    redis_service.delete("analytics:dashboard_summary")
 
     return get_case(case_id=case.id, db=db, current_user=current_user)

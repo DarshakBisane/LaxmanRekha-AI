@@ -33,21 +33,21 @@ class Case(Base):
 
     id = Column(String, primary_key=True, default=generate_uuid)
     case_number = Column(String, unique=True, index=True, nullable=False)
-    created_by = Column(String, ForeignKey("users.id"), nullable=False)
+    created_by = Column(String, ForeignKey("users.id"), index=True, nullable=False)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     ai_recommendation = Column(String, default="APPROVE LOAN", nullable=False)
     case_type = Column(String, default="LOAN_APPLICATION", nullable=False) # LOAN_APPLICATION, TRANSACTION_VERIFICATION, KYC_ONBOARDING
-    status = Column(String, default="DRAFT", nullable=False) # DRAFT, PROCESSING, ANALYZED, PENDING_REVIEW, NEEDS_VERIFICATION, APPROVED, REJECTED, FAILED
+    status = Column(String, default="DRAFT", index=True, nullable=False) # DRAFT, PROCESSING, ANALYZED, PENDING_REVIEW, NEEDS_VERIFICATION, APPROVED, REJECTED, FAILED
     trust_score = Column(Float, nullable=True)
-    risk_level = Column(String, nullable=True) # LOW_RISK, MEDIUM_RISK, HIGH_RISK
+    risk_level = Column(String, index=True, nullable=True) # LOW_RISK, MEDIUM_RISK, HIGH_RISK
     transaction_amount = Column(Float, nullable=True)
     transaction_currency = Column(String, default="INR", nullable=False)
     transaction_type = Column(String, nullable=True) # TRANSFER, LOAN_DISBURSEMENT, WITHDRAWAL, CREDIT_CARD
     transaction_count_24h = Column(Integer, default=1, nullable=False)
     is_new_device = Column(Boolean, default=False, nullable=False)
     is_unusual_location = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, index=True, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=utc_now, onupdate=utc_now, nullable=False)
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
@@ -63,7 +63,7 @@ class Document(Base):
     __tablename__ = "documents"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    case_id = Column(String, ForeignKey("cases.id"), nullable=False)
+    case_id = Column(String, ForeignKey("cases.id"), index=True, nullable=False)
     document_type = Column(String, nullable=False) # IDENTITY, SALARY_SLIP, BANK_STATEMENT, OTHER
     original_filename = Column(String, nullable=False)
     mime_type = Column(String, nullable=False)
@@ -82,8 +82,8 @@ class ExtractedField(Base):
     __tablename__ = "extracted_fields"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    document_id = Column(String, ForeignKey("documents.id"), nullable=True)
-    case_id = Column(String, ForeignKey("cases.id"), nullable=False)
+    document_id = Column(String, ForeignKey("documents.id"), index=True, nullable=True)
+    case_id = Column(String, ForeignKey("cases.id"), index=True, nullable=False)
     field_name = Column(String, nullable=False) # full_name, date_of_birth, synthetic_id, employer, salary_amount, account_number
     field_value = Column(String, nullable=False)
     normalized_value = Column(String, nullable=False)
@@ -98,7 +98,7 @@ class VerificationResult(Base):
     __tablename__ = "verification_results"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    case_id = Column(String, ForeignKey("cases.id"), nullable=False)
+    case_id = Column(String, ForeignKey("cases.id"), index=True, nullable=False)
     check_type = Column(String, nullable=False) # IDENTITY, SOURCE, CROSS_DOCUMENT, DOCUMENT_INTEGRITY, OCR, TRANSACTION, POLICY
     status = Column(String, nullable=False) # MATCH, MISMATCH, WARNING, PASS, FAIL, NOT_APPLICABLE
     score = Column(Float, default=100.0, nullable=False)
@@ -130,8 +130,8 @@ class Review(Base):
     __tablename__ = "reviews"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    case_id = Column(String, ForeignKey("cases.id"), nullable=False)
-    reviewer_id = Column(String, ForeignKey("users.id"), nullable=False)
+    case_id = Column(String, ForeignKey("cases.id"), index=True, nullable=False)
+    reviewer_id = Column(String, ForeignKey("users.id"), index=True, nullable=False)
     action = Column(String, nullable=False) # APPROVE, REJECT, REQUEST_VERIFICATION
     comment = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
@@ -143,8 +143,8 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    user_id = Column(String, ForeignKey("users.id"), nullable=True)
-    case_id = Column(String, ForeignKey("cases.id"), nullable=True)
+    user_id = Column(String, ForeignKey("users.id"), index=True, nullable=True)
+    case_id = Column(String, ForeignKey("cases.id"), index=True, nullable=True)
     action = Column(String, nullable=False)
     entity_type = Column(String, nullable=False)
     entity_id = Column(String, nullable=True)
@@ -152,7 +152,7 @@ class AuditLog(Base):
     ip_hash_or_masked_ip = Column(String, default="127.0.***.***", nullable=False)
     prev_hash = Column(String, nullable=True)
     current_hash = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), default=utc_now, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=utc_now, index=True, nullable=False)
 
     user = relationship("User", back_populates="audit_logs")
     case = relationship("Case", back_populates="audit_logs")

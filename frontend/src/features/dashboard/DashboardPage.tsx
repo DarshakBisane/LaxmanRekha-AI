@@ -42,7 +42,9 @@ export const DashboardPage: React.FC = () => {
       const res = await apiClient.get('/analytics/summary');
       return res.data;
     },
-    refetchInterval: 10000,
+    staleTime: 30000,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch recent cases
@@ -52,7 +54,9 @@ export const DashboardPage: React.FC = () => {
       const res = await apiClient.get('/cases?limit=10');
       return res.data;
     },
-    refetchInterval: 10000,
+    staleTime: 30000,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 
   const filteredCases = (cases || []).filter((c) => {

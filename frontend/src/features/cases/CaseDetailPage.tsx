@@ -42,7 +42,11 @@ export const CaseDetailPage: React.FC = () => {
       return res.data;
     },
     enabled: !!id,
-    refetchInterval: 6000,
+    staleTime: 60000,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return (status === 'PROCESSING' || status === 'DRAFT') ? 4000 : false;
+    },
   });
 
   const reviewMutation = useMutation({

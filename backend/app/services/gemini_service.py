@@ -10,6 +10,10 @@ class GeminiService:
         self.api_key = settings.GEMINI_API_KEY
         self.model = settings.GEMINI_MODEL or "gemini-2.5-flash"
         self.base_url = "https://generativelanguage.googleapis.com/v1beta"
+        self._client = httpx.Client(
+            timeout=12.0,
+            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
+        )
 
     def extract_structured_fields(self, ocr_text: str, doc_type: str = "IDENTITY") -> Optional[Dict[str, Any]]:
         """
@@ -49,18 +53,17 @@ class GeminiService:
                     "responseMimeType": "application/json"
                 }
             }
-            with httpx.Client(timeout=12.0) as client:
-                res = client.post(url, json=payload)
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        text_resp = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                        # Parse JSON
-                        clean_json = re.sub(r'^```json\s*|\s*```$', '', text_resp.strip())
-                        return json.loads(clean_json)
-                else:
-                    logger.warning(f"Gemini API returned status {res.status_code}: {res.text[:150]}")
+            res = self._client.post(url, json=payload)
+            if res.status_code == 200:
+                data = res.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    text_resp = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                    # Parse JSON
+                    clean_json = re.sub(r'^```json\s*|\s*```$', '', text_resp.strip())
+                    return json.loads(clean_json)
+            else:
+                logger.warning(f"Gemini API returned status {res.status_code}: {res.text[:150]}")
         except Exception as e:
             logger.warning(f"Gemini field extraction error: {e}. Falling back to deterministic regex.")
 
@@ -110,13 +113,12 @@ class GeminiService:
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {"temperature": 0.2, "maxOutputTokens": 300}
             }
-            with httpx.Client(timeout=12.0) as client:
-                res = client.post(url, json=payload)
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        return candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+            res = self._client.post(url, json=payload)
+            if res.status_code == 200:
+                data = res.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    return candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
         except Exception as e:
             logger.warning(f"Gemini explanation generation failed: {e}")
 

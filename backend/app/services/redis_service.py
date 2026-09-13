@@ -1,5 +1,5 @@
 import time
-from typing import Optional, Any
+from typing import Optional, Any, Dict, Tuple
 import json
 from upstash_redis import Redis
 from app.core.config import settings
@@ -8,6 +8,7 @@ from app.core.logging import logger
 class RedisService:
     def __init__(self):
         self.client: Optional[Redis] = None
+        self._local_cache: Dict[str, Tuple[float, Any]] = {}
         self._initialize()
 
     def _initialize(self):
@@ -43,26 +44,51 @@ class RedisService:
             return True
 
     def get_json(self, key: str) -> Optional[Any]:
+        # Check in-memory fast tier first
+        now = time.time()
+        if key in self._local_cache:
+            exp_time, val = self._local_cache[key]
+            if now < exp_time:
+                return val
+            else:
+                del self._local_cache[key]
+
         if not self.client:
             return None
         try:
             val = self.client.get(key)
             if val:
-                return json.loads(val)
+                parsed = json.loads(val)
+                self._local_cache[key] = (now + 10, parsed) # local mini-cache
+                return parsed
             return None
         except Exception as e:
             logger.warning(f"Redis get error: {e}")
             return None
 
     def set_json(self, key: str, value: Any, expire_seconds: int = 300) -> bool:
+        now = time.time()
+        self._local_cache[key] = (now + expire_seconds, value)
         if not self.client:
-            return False
+            return True
         try:
             serialized = json.dumps(value)
             self.client.set(key, serialized, ex=expire_seconds)
             return True
         except Exception as e:
             logger.warning(f"Redis set error: {e}")
+            return False
+
+    def delete(self, key: str) -> bool:
+        if key in self._local_cache:
+            del self._local_cache[key]
+        if not self.client:
+            return True
+        try:
+            self.client.delete(key)
+            return True
+        except Exception as e:
+            logger.warning(f"Redis delete error: {e}")
             return False
 
 redis_service = RedisService()

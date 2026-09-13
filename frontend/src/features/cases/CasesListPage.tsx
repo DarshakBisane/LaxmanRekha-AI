@@ -19,7 +19,9 @@ export const CasesListPage: React.FC = () => {
       const res = await apiClient.get(url);
       return res.data;
     },
-    refetchInterval: 10000,
+    staleTime: 30000,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
   });
 
   const filtered = (cases || []).filter(c => 

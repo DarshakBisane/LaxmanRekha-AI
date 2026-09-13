@@ -1,4 +1,5 @@
-from typing import Optional, List, Callable
+import time
+from typing import Optional, List, Callable, Dict, Tuple
 from fastapi import Depends, Request, Header
 from sqlalchemy.orm import Session
 from app.db.session import get_db
@@ -7,6 +8,8 @@ from app.core.config import settings
 from app.core.security import decode_access_token
 from app.core.exceptions import UnauthorizedError, ForbiddenError
 from app.services.redis_service import redis_service
+
+_USER_CACHE: Dict[str, Tuple[float, User]] = {}
 
 def get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("X-Forwarded-For")
@@ -36,7 +39,7 @@ def get_current_user(
     if not user_id:
         raise UnauthorizedError("Invalid token payload.")
 
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.get(User, user_id)
     if not user:
         raise UnauthorizedError("User account not found.")
 

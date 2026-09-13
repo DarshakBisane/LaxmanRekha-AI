@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.models import Case, Review, User
 from app.core.exceptions import ValidationError, NotFoundError, ForbiddenError
 from app.services.audit_service import audit_service
+from app.services.redis_service import redis_service
 
 class ReviewService:
     @staticmethod
@@ -55,6 +56,9 @@ class ReviewService:
         db.commit()
         db.refresh(case)
         db.refresh(review)
+
+        # Invalidate dashboard summary cache
+        redis_service.delete("analytics:dashboard_summary")
 
         # Audit log
         audit_service.log_event(
