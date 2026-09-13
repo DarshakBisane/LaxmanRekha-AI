@@ -1,0 +1,58 @@
+[
+  {
+    "synthetic_id": "SYNTH1234A",
+    "name": "Amit Patil",
+    "date_of_birth": "2002-05-10",
+    "status": "ACTIVE",
+    "address": "Flat 402, Shiv Shanti Heights, Pune, Maharashtra 411038",
+    "notes": "Synthetic standard test subject"
+  },
+  {
+    "synthetic_id": "SYNTH5678B",
+    "name": "Neha Kulkarni",
+    "date_of_birth": "2001-11-21",
+    "status": "ACTIVE",
+    "address": "12/B Nilgiri Enclave, Thane West, Mumbai, Maharashtra 400602",
+    "notes": "Synthetic standard test subject"
+  },
+  {
+    "synthetic_id": "SYNTH2468C",
+    "name": "Rohit Jadhav",
+    "date_of_birth": "2000-08-03",
+    "status": "ACTIVE",
+    "address": "74 Galaxy Avenue, Baner, Pune, Maharashtra 411045",
+    "notes": "Synthetic standard test subject"
+  },
+  {
+    "synthetic_id": "SYNTH1357D",
+    "name": "Priya Deshmukh",
+    "date_of_birth": "2002-01-17",
+    "status": "ACTIVE",
+    "address": "804 Emerald Towers, Indiranagar, Bengaluru, Karnataka 560038",
+    "notes": "Synthetic standard test subject"
+  },
+  {
+    "synthetic_id": "SYNTH9012E",
+    "name": "Rajesh Verma",
+    "date_of_birth": "1998-12-05",
+    "status": "INACTIVE",
+    "address": "A-102 Sector 62, Noida, Uttar Pradesh 201301",
+    "notes": "Synthetic inactive credential test subject"
+  },
+  {
+    "synthetic_id": "SYNTH3344F",
+    "name": "Sneha Kulkarni",
+    "date_of_birth": "1999-04-14",
+    "status": "SUSPENDED",
+    "address": "Plot 19, Koregaon Park, Pune, Maharashtra 411001",
+    "notes": "Synthetic suspended account test subject"
+  },
+  {
+    "synthetic_id": "SYNTH7788G",
+    "name": "Vikram Joshi",
+    "date_of_birth": "1995-09-30",
+    "status": "ACTIVE",
+    "address": "55 Marine Lines, South Mumbai, Maharashtra 400020",
+    "notes": "Synthetic high-limit credit applicant"
+  }
+]

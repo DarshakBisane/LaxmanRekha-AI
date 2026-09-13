@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: laxmanrekha-backend
+    env: python
+    region: ohio
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt && alembic -c backend/alembic.ini upgrade head"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir backend"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_DATABASE_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: FRONTEND_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: "none"

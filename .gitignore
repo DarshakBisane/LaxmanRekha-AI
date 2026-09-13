@@ -1,0 +1,39 @@
+# Environment and secrets
+.env
+*.env
+!.env.example
+.venv/
+env/
+venv/
+test_venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Storage / Temp files
+backend/storage/temp/
+backend/storage/rag/
